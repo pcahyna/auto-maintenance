@@ -146,8 +146,7 @@ of Fedora, Red Hat Enterprise Linux & CentOS.
 %endif
 
 %prep
-%setup -cT -b100
-%setup -qcD -a1 -a2 -a3 -a5 -a6 -a7 -a8 -a9 -a10 -a11 -a12 -a13
+%setup -qcT -b100 -a0 -a1 -a2 -a3 -a5 -a6 -a7 -a8 -a9 -a10 -a11 -a12 -a13
 cd %{rolename0}-%{id0}
 %patch101 -p1
 %patch102 -p1
