@@ -201,6 +201,10 @@ for rolename_id in %{rolename7}-%{id7} %{rolename8}-%{id8} %{rolename9}-%{id9} \
 done
 %endif
 
+# transform ambiguous #!/usr/bin/env python shebangs to python3 to stop brp-mangle-shebangs complaining
+find -type f -executable -name '*.py' -exec \
+     sed -i -r -e '1s@^(#! */usr/bin/env python)(\s|$)@#\13\2@' '{}' +
+
 %build
 sh %{SOURCE999} \
 %{rolename0}-%{id0}/README.md \
