@@ -95,8 +95,6 @@ Source13: https://github.com/linux-system-roles/%{rolename13}/archive/%{id13}.ta
 %global mainid 0.0.1
 Source100: https://github.com/pcahyna/auto-maintenance/archive/%{mainid}.tar.gz#/auto-maintenance-%{mainid}.tar.gz
 
-Source999: md2html.sh
-
 %if "%{roleprefix}" != "linux-system-roles."
 Patch1: rhel-system-roles-%{rolename1}-prefix.diff
 Patch2: rhel-system-roles-%{rolename2}-prefix.diff
@@ -148,7 +146,8 @@ of Fedora, Red Hat Enterprise Linux & CentOS.
 %endif
 
 %prep
-%setup -qc -a1 -a2 -a3 -a5 -a6 -a7 -a8 -a9 -a10 -a11 -a12 -a13
+%setup -cT -b100
+%setup -qcD -a1 -a2 -a3 -a5 -a6 -a7 -a8 -a9 -a10 -a11 -a12 -a13
 cd %{rolename0}-%{id0}
 %patch101 -p1
 %patch102 -p1
@@ -206,7 +205,7 @@ find -type f -executable -name '*.py' -exec \
      sed -i -r -e '1s@^(#! */usr/bin/env python)(\s|$)@#\13\2@' '{}' +
 
 %build
-sh %{SOURCE999} \
+sh md2html.sh \
 %{rolename0}-%{id0}/README.md \
 %{rolename1}-%{id1}/README.md \
 %{rolename2}-%{id2}/README.md \
