@@ -14,6 +14,9 @@ License: GPLv3+ and MIT and BSD
 %endif
 %global roleprefix %{name}.
 
+%global collection_namespace fedora
+%global collection_name linux_system_roles
+
 # For each role, call either defcommit() or deftag(). The other macros
 # (%%id and %%shortid) can be then used in the same way in both cases.
 # This way  the rest of the spec file des not need to know whether we are
@@ -126,6 +129,9 @@ BuildArch: noarch
 BuildRequires: asciidoc
 BuildRequires: pandoc
 BuildRequires: highlight
+BuildRequires: python3
+BuildRequires: python-ruamel.yaml
+BuildRequires: ansible >= 2.9.10
 
 Requires: python3-jmespath
 
@@ -146,39 +152,51 @@ of Fedora, Red Hat Enterprise Linux & CentOS.
 %endif
 
 %prep
-%setup -qcT -b100 -a0 -a1 -a2 -a3 -a5 -a6 -a7 -a8 -a9 -a10 -a11 -a12 -a13
-cd %{rolename0}-%{id0}
+%setup -qcT -b100 -a0 -a1 -a2 -a3 -a5 -a6 -a7 -a8 -a9 -a10 -a11 -a12 -a13 -n linux-system-roles-0.0.1
+for rolename_id in %{rolename0}-%{id0} %{rolename1}-%{id1} %{rolename2}-%{id2} \
+    %{rolename3}-%{id3} %{rolename5}-%{id5} %{rolename6}-%{id6} \
+    %{rolename7}-%{id7} %{rolename8}-%{id8} %{rolename9}-%{id9} \
+    %{rolename10}-%{id10} %{rolename11}-%{id11} %{rolename12}-%{id12} \
+    %{rolename13}-%{id13}; do
+    # assumes rolename has no dash in it
+    # note that we have to use double %%
+    # in order for a single % to be passed to bash
+    rolename=${rolename_id%%-*}
+    mv ${rolename_id} ${rolename}
+done
+
+cd %{rolename0}
 %patch101 -p1
 %patch102 -p1
 %patch103 -p1
 cd ..
-cd %{rolename1}-%{id1}
+cd %{rolename1}
 %if "%{roleprefix}" != "linux-system-roles."
 %patch1 -p1
 %endif
 %patch11 -p1
 %patch12 -p1
 cd ..
-cd %{rolename2}-%{id2}
+cd %{rolename2}
 %if "%{roleprefix}" != "linux-system-roles."
 %patch2 -p1
 %endif
 %patch21 -p1
 cd ..
-cd %{rolename3}-%{id3}
+cd %{rolename3}
 %if "%{roleprefix}" != "linux-system-roles."
 %patch3 -p1
 %endif
 %patch31 -p1
 cd ..
-cd %{rolename5}-%{id5}
+cd %{rolename5}
 %if "%{roleprefix}" != "linux-system-roles."
 %patch5 -p1
 %endif
 %patch52 -p1
 %patch53 -p1
 cd ..
-cd %{rolename6}-%{id6}
+cd %{rolename6}
 %if "%{roleprefix}" != "linux-system-roles."
 %patch6 -p1
 %endif
@@ -187,14 +205,10 @@ cd ..
 
 # for some roles, the prefix change can be scripted - see below
 %if "%{roleprefix}" != "linux-system-roles."
-for rolename_id in %{rolename7}-%{id7} %{rolename8}-%{id8} %{rolename9}-%{id9} \
-    %{rolename10}-%{id10} %{rolename11}-%{id11} %{rolename12}-%{id12} \
-    %{rolename13}-%{id13}; do
-    # assumes rolename has no dash in it
-    # note that we have to use double %%
-    # in order for a single % to be passed to bash
-    rolename=${rolename_id%%-*}
-    find $rolename_id -type f -exec \
+for rolename in %{rolename7} %{rolename8} %{rolename9} \
+    %{rolename10} %{rolename11} %{rolename12} \
+    %{rolename13}; do
+    find $rolename -type f -exec \
          sed "s/linux-system-roles[.]${rolename}\\>/%{roleprefix}${rolename}/g" -i {} \;
 done
 %endif
@@ -203,38 +217,62 @@ done
 find -type f -executable -name '*.py' -exec \
      sed -i -r -e '1s@^(#! */usr/bin/env python)(\s|$)@#\13\2@' '{}' +
 
+cat > galaxy.yml <<EOF
+namespace: %{collection_namespace}
+name: %{collection_name}
+version: %{version}
+readme: README.md
+authors:
+  - Noriko Hosoi <nhosoi@redhat.com>
+  - Rich Megginson <rmeg@redhat.com>
+EOF
+
 %build
 sh md2html.sh \
-%{rolename0}-%{id0}/README.md \
-%{rolename1}-%{id1}/README.md \
-%{rolename2}-%{id2}/README.md \
-%{rolename3}-%{id3}/README.md \
-%{rolename5}-%{id5}/README.md \
-%{rolename6}-%{id6}/README.md \
-%{rolename7}-%{id7}/README.md \
-%{rolename8}-%{id8}/README.md \
-%{rolename9}-%{id9}/README.md \
-%{rolename10}-%{id10}/README.md \
-%{rolename11}-%{id11}/README.md \
-%{rolename12}-%{id12}/README.md \
-%{rolename13}-%{id13}/README.md
+%{rolename0}/README.md \
+%{rolename1}/README.md \
+%{rolename2}/README.md \
+%{rolename3}/README.md \
+%{rolename5}/README.md \
+%{rolename6}/README.md \
+%{rolename7}/README.md \
+%{rolename8}/README.md \
+%{rolename9}/README.md \
+%{rolename10}/README.md \
+%{rolename11}/README.md \
+%{rolename12}/README.md \
+%{rolename13}/README.md
+
+mkdir .collections
+for role in %{rolename0} %{rolename1} %{rolename2} \
+    %{rolename3} %{rolename6} \
+    %{rolename8} %{rolename9} \
+    %{rolename11} %{rolename12} \
+    %{rolename13}; do
+    python3 lsr_role2collection.py --role "$role" --src-path . --dest-path .collections --namespace %{collection_namespace} --collection %{collection_name}
+done
+
+cp -p galaxy.yml .collections/ansible_collections/%{collection_namespace}/%{collection_name}
+
+cd .collections/ansible_collections/%{collection_namespace}/%{collection_name}/
+%ansible_collection_build
 
 %install
 mkdir -p $RPM_BUILD_ROOT%{_datadir}/ansible/roles
 
-cp -pR %{rolename0}-%{id0}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename0}
-cp -pR %{rolename1}-%{id1}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename1}
-cp -pR %{rolename2}-%{id2}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename2}
-cp -pR %{rolename3}-%{id3}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename3}
-cp -pR %{rolename5}-%{id5}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename5}
-cp -pR %{rolename6}-%{id6}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename6}
-cp -pR %{rolename7}-%{id7}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename7}
-cp -pR %{rolename8}-%{id8}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename8}
-cp -pR %{rolename9}-%{id9}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename9}
-cp -pR %{rolename10}-%{id10}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename10}
-cp -pR %{rolename11}-%{id11}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename11}
-cp -pR %{rolename12}-%{id12}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename12}
-cp -pR %{rolename13}-%{id13}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename13}
+cp -pR %{rolename0}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename0}
+cp -pR %{rolename1}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename1}
+cp -pR %{rolename2}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename2}
+cp -pR %{rolename3}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename3}
+cp -pR %{rolename5}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename5}
+cp -pR %{rolename6}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename6}
+cp -pR %{rolename7}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename7}
+cp -pR %{rolename8}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename8}
+cp -pR %{rolename9}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename9}
+cp -pR %{rolename10}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename10}
+cp -pR %{rolename11}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename11}
+cp -pR %{rolename12}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename12}
+cp -pR %{rolename13}      $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}%{rolename13}
 
 %if 0%{?rolealtprefix:1}
 ln -s    %{roleprefix}%{rolename0}   $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{rolealtprefix}%{rolename0}
@@ -381,6 +419,10 @@ cp -p $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}certificate/README.m
     $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}certificate/LICENSE \
     $RPM_BUILD_ROOT%{_pkgdocdir}/certificate
 
+cd .collections/ansible_collections/%{collection_namespace}/%{collection_name}/
+%ansible_collection_install
+
+
 %files
 %dir %{_datadir}/ansible
 %dir %{_datadir}/ansible/roles
@@ -461,6 +503,8 @@ cp -p $RPM_BUILD_ROOT%{_datadir}/ansible/roles/%{roleprefix}certificate/README.m
 %license %{_datadir}/ansible/roles/%{roleprefix}nbde_server/LICENSE
 %license %{_datadir}/ansible/roles/%{roleprefix}nbde_client/LICENSE
 %license %{_datadir}/ansible/roles/%{roleprefix}certificate/LICENSE
+
+%{ansible_collection_files}
 
 %changelog
 * Mon Aug 24 2020 Pavel Cahyna <pcahyna@redhat.com> - 1.0-19
