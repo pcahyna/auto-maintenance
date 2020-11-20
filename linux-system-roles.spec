@@ -105,7 +105,7 @@ Source13: %{archiveurl13}
 
 %deftag 100 %mainid
 %global rolename100 auto-maintenance
-Source100: %{archiveurl100}
+Source100: https://github.com/pcahyna/auto-maintenance/archive/%{mainid}/auto-maintenance-%{mainid}.tar.gz
 
 %if "%{roleprefix}" != "linux-system-roles."
 Patch1: rhel-system-roles-%{rolename1}-prefix.diff
