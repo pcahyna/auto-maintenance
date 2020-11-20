@@ -21,12 +21,18 @@ License: GPLv3+ and MIT and BSD
 # (%%id and %%shortid) can be then used in the same way in both cases.
 # This way  the rest of the spec file des not need to know whether we are
 # dealing with a tag or a commit.
-%define defcommit() %{expand:%%global id%{1} %{2}
-%%global shortid%{1} %%(c=%%{id%{1}}; echo ${c:0:7})
+%global archiveext tar.gz
+%define getarchivedir() %(p=%{basename:%{S:%{1}}}; echo ${p%%.%{archiveext}})
+
+%define defcommit() %{expand:%%global ref%{1} %{2}
+%%global shortcommit%{1} %%(c=%%{ref%{1}}; echo ${c:0:7})
+%%global extractdir%{1} %%{expand: %%getarchivedir %{1}}
+%%global archiveurl%{1} https://github.com/linux-system-roles/%%{rolename%{1}}/archive/%%{ref%{1}}/%%{rolename%{1}}-%%{ref%{1}}.tar.gz
 }
 
-%define deftag() %{expand:%%global id%{1} %{2}
-%%global shortid%{1} %{2}
+%define deftag() %{expand:%%global ref%{1} %{2}
+%%global extractdir%{1} %%{expand: %%getarchivedir %{1}}
+%%global archiveurl%{1} https://github.com/linux-system-roles/%%{rolename%{1}}/archive/%%{ref%{1}}/%%{rolename%{1}}-%%{ref%{1}}.tar.gz
 }
 
 %defcommit 0 0c2bb286bbc1b73d728226924e0010c0fa1ce30a
@@ -81,22 +87,25 @@ License: GPLv3+ and MIT and BSD
 %global rolename13 certificate
 #%%deftag 13 0.1.0
 
-Source: https://github.com/linux-system-roles/%{rolename0}/archive/%{id0}.tar.gz#/%{rolename0}-%{shortid0}.tar.gz
-Source1: https://github.com/linux-system-roles/%{rolename1}/archive/%{id1}.tar.gz#/%{rolename1}-%{shortid1}.tar.gz
-Source2: https://github.com/linux-system-roles/%{rolename2}/archive/%{id2}.tar.gz#/%{rolename2}-%{shortid2}.tar.gz
-Source3: https://github.com/linux-system-roles/%{rolename3}/archive/%{id3}.tar.gz#/%{rolename3}-%{shortid3}.tar.gz
-Source5: https://github.com/linux-system-roles/%{rolename5}/archive/%{id5}.tar.gz#/%{rolename5}-%{shortid5}.tar.gz
-Source6: https://github.com/linux-system-roles/%{rolename6}/archive/%{id6}.tar.gz#/%{rolename6}-%{shortid6}.tar.gz
-Source7: https://github.com/linux-system-roles/%{rolename7}/archive/%{id7}.tar.gz#/%{rolename7}-%{shortid7}.tar.gz
-Source8: https://github.com/linux-system-roles/%{rolename8}/archive/%{id8}.tar.gz#/%{rolename8}-%{shortid8}.tar.gz
-Source9: https://github.com/linux-system-roles/%{rolename9}/archive/%{id9}.tar.gz#/%{rolename9}-%{shortid9}.tar.gz
-Source10: https://github.com/linux-system-roles/%{rolename10}/archive/%{id10}.tar.gz#/%{rolename10}-%{shortid10}.tar.gz
-Source11: https://github.com/linux-system-roles/%{rolename11}/archive/%{id11}.tar.gz#/%{rolename11}-%{shortid11}.tar.gz
-Source12: https://github.com/linux-system-roles/%{rolename12}/archive/%{id12}.tar.gz#/%{rolename12}-%{shortid12}.tar.gz
-Source13: https://github.com/linux-system-roles/%{rolename13}/archive/%{id13}.tar.gz#/%{rolename13}-%{shortid13}.tar.gz
+Source: %{archiveurl0}
+Source1: %{archiveurl1}
+Source2: %{archiveurl2}
+Source3: %{archiveurl3}
+Source5: %{archiveurl5}
+Source6: %{archiveurl6}
+Source7: %{archiveurl7}
+Source8: %{archiveurl8}
+Source9: %{archiveurl9}
+Source10: %{archiveurl10}
+Source11: %{archiveurl11}
+Source12: %{archiveurl12}
+Source13: %{archiveurl13}
 
-%global mainid 0.0.1
-Source100: https://github.com/pcahyna/auto-maintenance/archive/%{mainid}.tar.gz#/auto-maintenance-%{mainid}.tar.gz
+%global mainid 0.0.2
+
+%deftag 100 %mainid
+%global rolename100 auto-maintenance
+Source100: %{archiveurl100}
 
 %if "%{roleprefix}" != "linux-system-roles."
 Patch1: rhel-system-roles-%{rolename1}-prefix.diff
@@ -152,12 +161,12 @@ of Fedora, Red Hat Enterprise Linux & CentOS.
 %endif
 
 %prep
-%setup -qT -b100 -a0 -a1 -a2 -a3 -a5 -a6 -a7 -a8 -a9 -a10 -a11 -a12 -a13 -n auto-maintenance-%{mainid}
-for rolename_id in %{rolename0}-%{id0} %{rolename1}-%{id1} %{rolename2}-%{id2} \
-    %{rolename3}-%{id3} %{rolename5}-%{id5} %{rolename6}-%{id6} \
-    %{rolename7}-%{id7} %{rolename8}-%{id8} %{rolename9}-%{id9} \
-    %{rolename10}-%{id10} %{rolename11}-%{id11} %{rolename12}-%{id12} \
-    %{rolename13}-%{id13}; do
+%setup -qT -b100 -a0 -a1 -a2 -a3 -a5 -a6 -a7 -a8 -a9 -a10 -a11 -a12 -a13 -n %{extractdir100}
+for rolename_id in %{extractdir0} %{extractdir1} %{extractdir2} \
+    %{extractdir3} %{extractdir5} %{extractdir6} \
+    %{extractdir7} %{extractdir8} %{extractdir9} \
+    %{extractdir10} %{extractdir11} %{extractdir12} \
+    %{extractdir13}; do
     # assumes rolename has no dash in it
     # note that we have to use double %%
     # in order for a single % to be passed to bash
