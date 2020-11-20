@@ -4,7 +4,7 @@ Name: rhel-system-roles
 Name: linux-system-roles
 %endif
 Summary: Set of interfaces for unified system management
-Version: 1.0
+Version: 0.0.2
 Release: 19%{?dist}
 
 #Group: Development/Libraries
