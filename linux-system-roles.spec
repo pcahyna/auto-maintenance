@@ -152,7 +152,7 @@ of Fedora, Red Hat Enterprise Linux & CentOS.
 %endif
 
 %prep
-%setup -qcT -b100 -a0 -a1 -a2 -a3 -a5 -a6 -a7 -a8 -a9 -a10 -a11 -a12 -a13 -n linux-system-roles-0.0.1
+%setup -qT -b100 -a0 -a1 -a2 -a3 -a5 -a6 -a7 -a8 -a9 -a10 -a11 -a12 -a13 -n auto-maintenance-%{mainid}
 for rolename_id in %{rolename0}-%{id0} %{rolename1}-%{id1} %{rolename2}-%{id2} \
     %{rolename3}-%{id3} %{rolename5}-%{id5} %{rolename6}-%{id6} \
     %{rolename7}-%{id7} %{rolename8}-%{id8} %{rolename9}-%{id9} \
