@@ -35,6 +35,7 @@ import textwrap
 from pathlib import Path
 from ruamel.yaml import YAML
 from shutil import copytree, copy2, ignore_patterns, rmtree
+from six import string_types
 
 from ansible.errors import AnsibleParserError
 from ansible.parsing.dataloader import DataLoader
@@ -128,11 +129,14 @@ class LSRFileTransformerBase(object):
 
     def __init__(self, filepath, rolename, args):
         self.filepath = filepath
+        self.namespace = args["namespace"]
+        self.collection = args["collection"]
         self.prefix = args["prefix"]
         self.subrole_prefix = args["subrole_prefix"]
         self.replace_dot = args["replace_dot"]
         self.role_modules = args["role_modules"]
         self.src_owner = args["src_owner"]
+        self.top_dir = args["top_dir"]
         dl = DataLoader()
         self.ans_data = dl.load_from_file(filepath)
         if self.ans_data is None:
@@ -420,6 +424,58 @@ class LSRFileTransformer(LSRFileTransformerBase):
                         + self.subrole_prefix
                         + match.group(1).replace(".", self.replace_dot)
                     )
+        elif module_name == "include_vars":
+            """
+            Convert include_vars in the test playbook.
+            include_vars: path/to/linux-system-roles.ROLENAME/file_or_dir
+            or
+            include_vars:
+              file|dir: path/to/linux-system-roles.ROLENAME/file_or_dir
+            Note: If the path is relative and not inside a role,
+            it will be parsed relative to the playbook.
+            To solve it, the relative path is converted to the absolute path.
+            """
+            if isinstance(ru_task[module_name], dict):
+                _key = None
+                if (
+                    "file" in ru_task[module_name].keys()
+                    and "/linux-system-roles." in ru_task[module_name]["file"]
+                ):
+                    _key = "file"
+                elif (
+                    "dir" in ru_task[module_name].keys()
+                    and "/linux-system-roles." in ru_task[module_name]["dir"]
+                ):
+                    _key = "dir"
+                if _key:
+                    _path = ru_task[module_name][_key]
+                    _match = re.match(
+                        r".*/linux-system-roles.(\w+)/([\w\d\./]+)", _path
+                    )
+                    ru_task[module_name][
+                        _key
+                    ] = "{0}/ansible_collections/{1}/{2}/roles/{3}/{4}".format(
+                        self.top_dir,
+                        self.namespace,
+                        self.collection,
+                        _match.group(1),
+                        _match.group(2),
+                    )
+            elif (
+                isinstance(ru_task[module_name], string_types)
+                and "/linux-system-roles." in ru_task[module_name]
+            ):
+                _path = ru_task[module_name]
+                _match = re.match(r".*/linux-system-roles.(\w+)/([\w\d\./]+)", _path)
+                ru_task[
+                    module_name
+                ] = "{0}/ansible_collections/{1}/{2}/roles/{3}/{4}".format(
+                    self.top_dir,
+                    self.namespace,
+                    self.collection,
+                    _match.group(1),
+                    _match.group(2),
+                )
         elif module_name in self.role_modules:
             logging.debug(f"\ttask role module {module_name}")
             # assumes ru_task is an orderreddict
@@ -569,7 +625,7 @@ def copy_tree_with_replace(
     transformer_args,
     isrole=True,
     ignoreme=None,
-    symlinks=False,
+    symlinks=True,
 ):
     """
     1. Copy files and dirs in the dir to
@@ -591,7 +647,7 @@ def copy_tree_with_replace(
                 lsr_copytree(
                     src,
                     dest,
-                    ignore=ignore_patterns(ignoreme),
+                    ignore=ignore_patterns(*ignoreme),
                     symlinks=symlinks,
                     dirs_exist_ok=True,
                 )
@@ -603,18 +659,18 @@ def copy_tree_with_replace(
             lsrxfrm.run()
 
 
-def cleanup_symlinks(path, role):
+def cleanup_symlinks(path, role, rmlist):
     """
     Clean up symlinks in tests/roles
-    - Remove symlinks.
-    - If linux-system-roles.rolename is an empty dir, rmdir it.
     """
     if path.exists():
         nodes = sorted(list(path.rglob("*")), reverse=True)
         for node in nodes:
-            if node.is_symlink() and r"linux-system-roles." + role == node.name:
-                node.unlink()
-            elif (
+            for item in rmlist:
+                if item == node.name:
+                    if node.is_symlink():
+                        node.unlink()
+            if (
                 node.is_dir()
                 and r"linux-system-roles." + role == node.name
                 and not any(node.iterdir())
@@ -948,6 +1004,7 @@ def role2collection():
     collection = args.collection
     prefix = namespace + "." + collection + "."
     top_dest_path = args.dest_path.resolve()
+    current_dest = os.path.expanduser(str(top_dest_path))
     replace_dot = args.replace_dot
     subrole_prefix = args.subrole_prefix
 
@@ -1001,12 +1058,15 @@ def role2collection():
     }
 
     transformer_args = {
+        "namespace": namespace,
+        "collection": collection,
         "prefix": prefix,
         "subrole_prefix": subrole_prefix,
         "replace_dot": replace_dot,
         # get role modules - will need to find and convert these to use FQCN
         "role_modules": get_role_modules(src_path),
         "src_owner": src_owner,
+        "top_dir": current_dest,
     }
 
     # Role - copy subdirectories, tasks, defaults, vars, etc., in the system role to
@@ -1022,12 +1082,12 @@ def role2collection():
         TESTS,
         transformer_args,
         isrole=False,
-        ignoreme="artifacts",
-        symlinks=True,
+        ignoreme=["artifacts", "linux-system-roles.*", "__pycache__"],
     )
 
-    # remove symlinks in the tests/role, then updating the rolename to the collection format
-    cleanup_symlinks(tests_dir / role, role)
+    # remove symlinks in the tests/role.
+    removeme = ["library", "modules", "module_utils", "roles"]
+    cleanup_symlinks(tests_dir / role, role, removeme)
 
     # ==============================================================================
 
@@ -1107,6 +1167,7 @@ def role2collection():
             comment = "## Supported Linux System Roles"
         update_readme(src_path, filename, rolename, comment, issubrole)
 
+    ignoreme = ["linux-system-roles.*"]
     dest = docs_dir / role
     for doc in DOCS:
         src = src_path / doc
@@ -1116,7 +1177,7 @@ def role2collection():
                 src,
                 dest,
                 symlinks=False,
-                ignore=ignore_patterns("roles"),
+                ignore=ignore_patterns(*ignoreme),
                 dirs_exist_ok=True,
             )
             if doc == "examples":
@@ -1132,8 +1193,8 @@ def role2collection():
             process_readme(src_path, doc, role)
 
     # Remove symlinks in the docs/role (e.g., in the examples).
-    # Update the rolename to the collection format as done in the tests.
-    cleanup_symlinks(dest, role)
+    removeme = ["library", "modules", "module_utils", "roles"]
+    cleanup_symlinks(dest, role, removeme)
 
     # ==============================================================================
 
@@ -1226,10 +1287,11 @@ def role2collection():
                         TESTS,
                         transformer_args,
                         isrole=False,
-                        ignoreme="artifacts",
+                        ignoreme=["artifacts", "linux-system-roles.*", "__pycache__"],
                     )
-                    # remove symlinks in the tests/role, then updating the rolename to the collection format
-                    cleanup_symlinks(tests_dir / dr, dr)
+                    # remove symlinks in the tests/role.
+                    removeme = ["library", "modules", "module_utils", "roles"]
+                    cleanup_symlinks(tests_dir / dr, dr, removeme)
                     # copy README.md to dest_path/roles/sr.name
                     readme = sr / "README.md"
                     if readme.is_file():
@@ -1252,7 +1314,7 @@ def role2collection():
             else:
                 dest = dest_path / extra.name
                 logging.info(f"Copying extra {extra} to {dest}")
-                copytree(extra, dest)
+                lsr_copytree(extra, dest)
         # Other extra files.
         else:
             if extra.name.endswith(".yml") and "playbook" in extra.name:
@@ -1280,7 +1342,6 @@ def role2collection():
     default_collections_paths_list = list(
         map(os.path.expanduser, default_collections_paths.split(":"))
     )
-    current_dest = os.path.expanduser(str(top_dest_path))
     # top_dest_path is not in the default collections path.
     # suggest to run ansible-playbook with ANSIBLE_COLLECTIONS_PATHS env var.
     if current_dest not in default_collections_paths_list:
