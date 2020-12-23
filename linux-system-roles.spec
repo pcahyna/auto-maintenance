@@ -258,7 +258,7 @@ for role in %{rolename0} %{rolename1} %{rolename2} \
     %{rolename8} %{rolename9} \
     %{rolename11} %{rolename12} \
     %{rolename13}; do
-    python3 lsr_role2collection.py --role %{roleprefix}."$role" --src-path . --dest-path .collections --namespace %{collection_namespace} --collection %{collection_name}
+    python3 lsr_role2collection.py --role %{roleprefix}"$role" --src-path . --dest-path .collections --namespace %{collection_namespace} --collection %{collection_name}
 done
 
 cp -p galaxy.yml .collections/ansible_collections/%{collection_namespace}/%{collection_name}
