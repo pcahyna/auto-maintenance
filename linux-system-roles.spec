@@ -103,7 +103,7 @@ Source11: %{archiveurl11}
 Source12: %{archiveurl12}
 Source13: %{archiveurl13}
 
-%global mainid 0.0.2
+%global mainid merge-to-rhel
 
 %deftag 100 %mainid
 %global rolename100 auto-maintenance
