@@ -43,9 +43,9 @@ License: GPLv3+ and MIT and BSD
 %global rolename1 postfix
 %deftag 1 0.1
 
-%defcommit 2 6cd1ec8fdebdb92a789b14e5a44fe77f0a3d8ecd
+#%%defcommit 2 6cd1ec8fdebdb92a789b14e5a44fe77f0a3d8ecd
 %global rolename2 selinux
-#%%deftag 2 1.0.0
+%deftag 2 1.1.1
 
 %defcommit 3 924650d0cd4117f73a7f0413ab745a8632bc5cec
 %global rolename3 timesync
