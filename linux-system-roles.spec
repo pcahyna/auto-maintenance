@@ -92,6 +92,9 @@ Source11: https://github.com/linux-system-roles/%{rolename11}/archive/%{id11}.ta
 Source12: https://github.com/linux-system-roles/%{rolename12}/archive/%{id12}.tar.gz#/%{rolename12}-%{shortid12}.tar.gz
 Source13: https://github.com/linux-system-roles/%{rolename13}/archive/%{id13}.tar.gz#/%{rolename13}-%{shortid13}.tar.gz
 
+%global mainid 0.0.1
+Source100: https://github.com/pcahyna/auto-maintenance/archive/%{mainid}.tar.gz#/auto-maintenance-%{mainid}.tar.gz
+
 Source999: md2html.sh
 
 %if "%{roleprefix}" != "linux-system-roles."
