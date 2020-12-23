@@ -35,7 +35,7 @@ License: GPLv3+ and MIT and BSD
 %%global archiveurl%{1} https://github.com/linux-system-roles/%%{rolename%{1}}/archive/%%{ref%{1}}/%%{rolename%{1}}-%%{ref%{1}}.tar.gz
 }
 
-%defcommit 0 0c2bb286bbc1b73d728226924e0010c0fa1ce30a
+%defcommit 0 77596fdd976c6160d6152c200a5432c609725a14
 %global rolename0 kdump
 #%%deftag 0 1.0.0
 
