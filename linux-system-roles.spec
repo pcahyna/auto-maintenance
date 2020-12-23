@@ -101,7 +101,7 @@ Source11: %{archiveurl11}
 Source12: %{archiveurl12}
 Source13: %{archiveurl13}
 
-%global mainid 0.0.2
+%global mainid c9e63152c966d8809fc4c1be24af2748e8889a55
 
 %deftag 100 %mainid
 %global rolename100 auto-maintenance
