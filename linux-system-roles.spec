@@ -55,9 +55,9 @@ License: GPLv3+ and MIT and BSD
 %global rolename5 network
 #%%deftag 5 1.0.0
 
-%defcommit 6 81f30ab336f4ecc61b4a30ffcb080e17fd35de2e
+#%%defcommit 6 81f30ab336f4ecc61b4a30ffcb080e17fd35de2e
 %global rolename6 storage
-#%%deftag 6 1.0.2
+%deftag 6 1.2.2
 
 %defcommit 7 7f94b49688902eb507e0ebeda1fbf08621bc3c6b
 %global rolename7 metrics
