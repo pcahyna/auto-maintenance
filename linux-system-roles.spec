@@ -11,11 +11,13 @@ Release: 19%{?dist}
 License: GPLv3+ and MIT and BSD
 %if 0%{?rhel}
 %global rolealtprefix linux-system-roles.
-%endif
-%global roleprefix %{name}.
-
+%global collection_namespace redhat
+%global collection_name rhel_system_roles
+%else
 %global collection_namespace fedora
 %global collection_name linux_system_roles
+%endif
+%global roleprefix %{name}.
 
 # For each role, call either defcommit() or deftag(). The other macros
 # (%%id and %%shortid) can be then used in the same way in both cases.
