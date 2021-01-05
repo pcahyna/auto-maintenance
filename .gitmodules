@@ -1,0 +1,4 @@
+[submodule "ansible"]
+	path = ansible_repo
+	url = https://github.com/ansible/ansible.git
+	branch = stable-2.9
