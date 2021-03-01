@@ -189,34 +189,34 @@ Source17: %{archiveurl17}
 # Not used on Fedora.
 Source998: collection_readme.sh
 
-Patch11: rhel-system-roles-postfix-pr5.diff
-Patch12: postfix-meta-el8.diff
+# Patch11: rhel-system-roles-postfix-pr5.diff
+# Patch12: postfix-meta-el8.diff
 
-Patch21: selinux-tier1-tags.diff
-Patch22: selinux-bz-1926947-no-variable-named-present.diff
+# Patch21: selinux-tier1-tags.diff
+# Patch22: selinux-bz-1926947-no-variable-named-present.diff
 
-Patch31: timesync-tier1-tags.diff
+# Patch31: timesync-tier1-tags.diff
 
-Patch41: rhel-system-roles-kdump-pr22.diff
-Patch42: kdump-tier1-tags.diff
-Patch43: kdump-meta-el8.diff
-Patch44: kdump-fix-newline.diff
+# Patch41: rhel-system-roles-kdump-pr22.diff
+# Patch42: kdump-tier1-tags.diff
+# Patch43: kdump-meta-el8.diff
+# Patch44: kdump-fix-newline.diff
 
-Patch51: network-epel-minimal.diff
-# Not suitable for upstream, since the files need to be executable there
-Patch52: network-permissions.diff
-Patch53: network-tier1-tags.diff
-Patch55: network-disable-bondtests.diff
-Patch56: network-pr353.diff
+# Patch51: network-epel-minimal.diff
+# # Not suitable for upstream, since the files need to be executable there
+# Patch52: network-permissions.diff
+# Patch53: network-tier1-tags.diff
+# Patch55: network-disable-bondtests.diff
+# Patch56: network-pr353.diff
 
-Patch62: storage-partition-name.diff
-Patch63: storage-no-disks-existing.diff
-Patch64: storage-trim-volume-size.diff
+# Patch62: storage-partition-name.diff
+# Patch63: storage-no-disks-existing.diff
+# Patch64: storage-trim-volume-size.diff
 
-Patch71: metrics-mssql-x86.diff
+# Patch71: metrics-mssql-x86.diff
 
-Patch151: sshd-example.diff
-Patch152: sshd-work-on-ansible28-jinja27.diff
+# Patch151: sshd-example.diff
+# Patch152: sshd-work-on-ansible28-jinja27.diff
 
 BuildArch: noarch
 
@@ -261,40 +261,40 @@ for rolename in %{rolenames}; do
 done
 
 cd %{rolename1}
-%patch11 -p1
-%patch12 -p1
+#%%patch11 -p1
+#%%patch12 -p1
 cd ..
 cd %{rolename2}
-%patch21 -p1
-%patch22 -p1
+#%%patch21 -p1
+#%%patch22 -p1
 cd ..
 cd %{rolename3}
-%patch31 -p1
+#%%patch31 -p1
 cd ..
 cd %{rolename4}
-%patch41 -p1
-%patch42 -p1
-%patch43 -p1
-%patch44 -p1
+#%%patch41 -p1
+#%%patch42 -p1
+#%%patch43 -p1
+#%%patch44 -p1
 cd ..
 cd %{rolename5}
-%patch51 -p1
-%patch52 -p1
-%patch53 -p1
-%patch55 -p1
-%patch56 -p1
+#%%patch51 -p1
+#%%patch52 -p1
+#%%patch53 -p1
+#%%patch55 -p1
+#%%patch56 -p1
 cd ..
 cd %{rolename6}
-%patch62 -p1
-%patch63 -p1
-%patch64 -p1
+#%%patch62 -p1
+#%%patch63 -p1
+#%%patch64 -p1
 cd ..
 cd %{rolename7}
-%patch71 -p1
+#%%patch71 -p1
 cd ..
 cd %{rolename15}
-%patch151 -p1
-%patch152 -p1
+#%%patch151 -p1
+#%%patch152 -p1
 sed -r -i -e "s/ansible-sshd/linux-system-roles.sshd/" tests/*.yml examples/*.yml README.md
 cd ..
 
