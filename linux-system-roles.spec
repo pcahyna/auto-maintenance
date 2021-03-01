@@ -157,7 +157,7 @@ BuildRequires: ansible >= 2.9.10
 %global forgeorg15 https://github.com/willshersystems/
 %global repo15 ansible-sshd
 %global rolename15 sshd
-%defcommit 15 e1de59b3c54e9d48a010eeca73755df339c7e628
+%defcommit 15 032054b47813692874ac76ca8d601ed4b97bcbdc
 
 %defcommit 16 effa0a0d993832dee726290f263a2182cf3eacda
 %global rolename16 ssh
